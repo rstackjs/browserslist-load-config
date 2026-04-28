@@ -67,18 +67,18 @@ function loadConfig(opts: LoadConfigOptions): string[] | undefined;
 - **Example:**
 
 ```ts
-import { loadConfig } from "browserslist-load-config";
+import { loadConfig } from 'browserslist-load-config';
 
 // Pass a path to the configuration file
 const config = loadConfig({
-  path: "./path/to/project/root",
-  env: "production",
+  path: './path/to/project/root',
+  env: 'production',
 });
 
 // Pass a browserslist config directly
 const config = loadConfig({
-  config: "./path/to/project/root/.browserslistrc",
-  env: "production",
+  config: './path/to/project/root/.browserslistrc',
+  env: 'production',
 });
 
 console.log(config);
@@ -102,9 +102,9 @@ function findConfig(from: string): Record<string, string[]> | undefined;
 - **Example:**
 
 ```ts
-import { findConfig } from "browserslist-load-config";
+import { findConfig } from 'browserslist-load-config';
 
-const config = findConfig("./path/to/project/root");
+const config = findConfig('./path/to/project/root');
 
 console.log(config);
 /**
