@@ -1,4 +1,4 @@
-import { expect, test } from '@rstest/core';
+import { expect, test } from 'rstack/test';
 import { loadConfig } from '../../../../src';
 
 test('load browserslist from parent dir', () => {

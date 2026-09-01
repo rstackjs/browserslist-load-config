@@ -1,4 +1,4 @@
-import { expect, test } from '@rstest/core';
+import { expect, test } from 'rstack/test';
 import { findConfig, loadConfig } from '../../dist';
 
 test('load browserslist from .browserslistrc with env: development', () => {

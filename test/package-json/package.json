@@ -1,7 +1,7 @@
 {
   "name": "test-package-json",
-  "private": true,
   "version": "0.0.1",
+  "private": true,
   "browserslist": [
     "last 2 versions",
     "not ie <= 11",
