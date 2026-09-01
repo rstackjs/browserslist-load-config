@@ -1,4 +1,4 @@
-import { expect, test } from '@rstest/core';
+import { expect, test } from 'rstack/test';
 import { loadConfig } from '../../dist';
 
 test('load browserslist with extends', () => {
