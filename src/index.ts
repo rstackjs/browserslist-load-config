@@ -51,7 +51,7 @@ function check(section: string | string[]) {
   }
 }
 
-function parsePackage(file: string): Record<string, string[]> {
+function parsePackage(file: string): Record<string, string[]> | undefined {
   const config = JSON.parse(
     fs
       .readFileSync(file)
@@ -118,14 +118,26 @@ function readConfig(file: string) {
   return parseConfig(fs.readFileSync(file, 'utf-8'));
 }
 
+const parseConfigCache: Record<string, Record<string, string[]> | undefined> =
+  {};
+
 function parsePackageOrReadConfig(file: string) {
-  if (path.basename(file) === 'package.json') {
-    return parsePackage(file);
+  file = path.resolve(file);
+  if (file in parseConfigCache) {
+    return parseConfigCache[file];
   }
-  return readConfig(file);
+  const config =
+    path.basename(file) === 'package.json'
+      ? parsePackage(file)
+      : readConfig(file);
+  parseConfigCache[file] = config;
+  return config;
 }
 
-function pickEnv(config: Record<string, string[]>, opts: LoadConfigOptions) {
+function pickEnv(
+  config: Record<string, string[]> | undefined,
+  opts: LoadConfigOptions,
+) {
   if (typeof config !== 'object') {
     return config;
   }
@@ -144,18 +156,35 @@ function pickEnv(config: Record<string, string[]>, opts: LoadConfigOptions) {
   return config[name] || config.defaults;
 }
 
-function eachParent(file: string, callback: (dir: string) => void) {
-  const dir = isFile(file) ? path.dirname(file) : file;
-  let loc = path.resolve(dir);
+function eachParent(
+  file: string,
+  cache: Record<string, string | undefined>,
+  callback: (dir: string) => string | undefined,
+) {
+  file = path.resolve(file);
+  let loc = isFile(file) ? path.dirname(file) : file;
+  const visited: string[] = [];
+  let result: string | undefined;
   do {
-    const result = callback(loc);
-    if (typeof result !== 'undefined') return result;
+    if (loc in cache) {
+      result = cache[loc];
+      break;
+    }
+    visited.push(loc);
+    result = callback(loc);
+    if (typeof result !== 'undefined') break;
   } while (loc !== (loc = path.dirname(loc)));
-  return undefined;
+
+  for (const dir of visited) {
+    cache[dir] = result;
+  }
+  return result;
 }
 
+const configPathCache: Record<string, string | undefined> = {};
+
 function findConfigFile(from: string) {
-  return eachParent(from, (dir) => {
+  return eachParent(from, configPathCache, (dir) => {
     const config = path.join(dir, 'browserslist');
     const pkg = path.join(dir, 'package.json');
     const rc = path.join(dir, '.browserslistrc');
@@ -198,33 +227,9 @@ function findConfigFile(from: string) {
   });
 }
 
-const configCache: Record<string, Record<string, string[]>> = {};
-
 export function findConfig(from: string): Record<string, string[]> | undefined {
-  from = path.resolve(from);
-
-  const fromDir = isFile(from) ? path.dirname(from) : from;
-  if (fromDir in configCache) {
-    return configCache[fromDir];
-  }
-
-  let resolved: Record<string, string[]> | undefined;
   const configFile = findConfigFile(from);
-  if (configFile) {
-    resolved = parsePackageOrReadConfig(configFile);
-  }
-
-  const configDir = configFile && path.dirname(configFile);
-  eachParent(from, (dir) => {
-    if (resolved) {
-      configCache[dir] = resolved;
-    }
-    if (dir === configDir) {
-      return null;
-    }
-  });
-
-  return resolved;
+  return configFile ? parsePackageOrReadConfig(configFile) : undefined;
 }
 
 export type LoadConfigOptions = {
