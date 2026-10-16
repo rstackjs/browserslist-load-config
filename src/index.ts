@@ -20,9 +20,21 @@ function isFile(file: string) {
   if (file in isFileCache) {
     return isFileCache[file];
   }
-  const result = fs.existsSync(file) && fs.statSync(file).isFile();
-  isFileCache[file] = result;
-  return result;
+  try {
+    const result = fs.existsSync(file) && fs.statSync(file).isFile();
+    isFileCache[file] = result;
+    return result;
+  } catch (error) {
+    const { code } = error as NodeJS.ErrnoException;
+    if (
+      code === 'ENOENT' ||
+      code === 'EACCES' ||
+      code === 'ERR_ACCESS_DENIED'
+    ) {
+      return false;
+    }
+    throw error;
+  }
 }
 
 function check(section: string | string[]) {
