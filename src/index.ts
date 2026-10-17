@@ -72,6 +72,9 @@ function parsePackage(file: string): Record<string, string[]> {
   }
   for (const i in list) {
     check(list[i]);
+    if (typeof list[i] === 'string') {
+      list[i] = parseConfig(list[i]).defaults;
+    }
   }
 
   return list;
