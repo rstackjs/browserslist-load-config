@@ -3,6 +3,8 @@
   "version": "0.0.1",
   "private": true,
   "browserslist": {
+    "defaults": "chrome >= 80\nfirefox >= 80",
+    "development": "chrome >= 80, firefox >= 80",
     "test": [
       "last 2 versions",
       "not ie <= 11",
